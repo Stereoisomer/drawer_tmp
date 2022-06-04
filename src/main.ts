@@ -1,6 +1,7 @@
-import { Canvas } from "./canvas/canvas";
-import * as readline from "readline";
 import { exit } from "process";
+import * as readline from "readline";
+import { Canvas } from "./canvas/canvas";
+import { Coordinate } from "./types/coordinate";
 
 const io = readline.createInterface({
   input: process.stdin,
@@ -33,6 +34,7 @@ class ConsolePainter {
 
   async start() {
     while (true) {
+      this.canvas?.draw();
       const ans: string = await new Promise((resolve) => {
         io.question("enter command: ", (ans) => resolve(ans));
       });
@@ -46,7 +48,22 @@ class ConsolePainter {
                 parseInt(args[1] as string),
                 parseInt(args[2] as string)
               );
-              this.canvas.draw();
+            } catch (e) {
+              // no error handling
+            }
+            break;
+          case "L":
+            // draw straight line
+            try {
+              const coordFrom: Coordinate = {
+                x: parseInt(args[1] as string),
+                y: parseInt(args[2] as string),
+              };
+              const coordTo: Coordinate = {
+                x: parseInt(args[3] as string),
+                y: parseInt(args[4] as string),
+              };
+              this.canvas!.addLine(coordFrom, coordTo);
             } catch (e) {
               // no error handling
             }
