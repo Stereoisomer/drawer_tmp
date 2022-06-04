@@ -47,4 +47,18 @@ export class Canvas {
       }
     }
   }
+
+  addRectangle(cornerA: Coordinate, cornerB: Coordinate): void {
+    // do NOT add any line if any side could fail
+    if (!this.isCordValid(cornerA) || !this.isCordValid(cornerB))
+      throw "Invalid coordinates";
+
+    const cornerC: Coordinate = { x: cornerA.x, y: cornerB.y };
+    const cornerD: Coordinate = { x: cornerB.x, y: cornerA.y };
+
+    this.addLine(cornerA, cornerC);
+    this.addLine(cornerA, cornerD);
+    this.addLine(cornerB, cornerC);
+    this.addLine(cornerB, cornerD);
+  }
 }

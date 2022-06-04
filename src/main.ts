@@ -68,6 +68,22 @@ class ConsolePainter {
               // no error handling
             }
             break;
+          case "R":
+            // draw rectangle
+            try {
+              const coordA: Coordinate = {
+                x: parseInt(args[1] as string),
+                y: parseInt(args[2] as string),
+              };
+              const coordB: Coordinate = {
+                x: parseInt(args[3] as string),
+                y: parseInt(args[4] as string),
+              };
+              this.canvas!.addRectangle(coordA, coordB);
+            } catch (e) {
+              // no error handling
+            }
+            break;
           case "Q":
             // quit program
             exit(0);
