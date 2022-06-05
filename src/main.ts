@@ -50,6 +50,7 @@ class ConsolePainter {
               );
             } catch (e) {
               // no error handling
+              console.log(e);
             }
             break;
           case "L":
@@ -66,6 +67,7 @@ class ConsolePainter {
               this.canvas!.addLine(coordFrom, coordTo);
             } catch (e) {
               // no error handling
+              console.log(e);
             }
             break;
           case "R":
@@ -82,6 +84,21 @@ class ConsolePainter {
               this.canvas!.addRectangle(coordA, coordB);
             } catch (e) {
               // no error handling
+              console.log(e);
+            }
+            break;
+          case "B":
+            // fill area
+            try {
+              const coord: Coordinate = {
+                x: parseInt(args[1] as string),
+                y: parseInt(args[2] as string),
+              };
+              const color: string = args[3] as string;
+              this.canvas!.fillArea(coord, color);
+            } catch (e) {
+              // no error handling
+              console.log(e);
             }
             break;
           case "Q":
