@@ -1,21 +1,100 @@
 import { Coordinate } from "../types/coordinate";
 import { Canvas } from "./canvas";
+import { Cell } from "./cell";
 
 describe("Canvas test", () => {
   beforeAll(() => {});
 
-  describe("creating Canvas instances", () => {
-    describe("positive width and height", () => {
+  describe("parsing canvas from 2D string array", () => {
+    describe("empty canvas", () => {
       const width = 5;
       const height = 5;
-
-      const expected: string[][] = [
+      const input: string[][] = [
         [" ", " ", " ", " ", " "],
         [" ", " ", " ", " ", " "],
         [" ", " ", " ", " ", " "],
         [" ", " ", " ", " ", " "],
         [" ", " ", " ", " ", " "],
       ];
+
+      const canvas = Canvas.from(width, height, input);
+
+      const expected: Cell[][] = new Array<Cell[]>(height);
+      for (let i = 0; i < height; i++) {
+        expected[i] = new Array<Cell>(width);
+        for (let j = 0; j < width; j++) {
+          expected[i]![j] = new Cell({ x: j, y: i }, " ");
+        }
+      }
+      it("should create canvas of same size", () => {
+        expect(canvas.width).toEqual(width);
+        expect(canvas.height).toEqual(height);
+      });
+      it("should create canvas of empty content", () => {
+        expect(canvas.canvas).toEqual(expected);
+      });
+    });
+
+    describe("canvas with content", () => {
+      const width = 5;
+      const height = 5;
+      const input: string[][] = [
+        [" ", " ", " ", " ", " "],
+        [" ", "x", " ", " ", " "],
+        [" ", " ", " ", " ", " "],
+        [" ", " ", " ", "x", " "],
+        [" ", " ", " ", " ", " "],
+      ];
+
+      const canvas = Canvas.from(width, height, input);
+
+      const expected: Cell[][] = new Array<Cell[]>(height);
+      for (let i = 0; i < height; i++) {
+        expected[i] = new Array<Cell>(width);
+        for (let j = 0; j < width; j++) {
+          expected[i]![j] = new Cell({ x: j, y: i }, " ");
+        }
+      }
+      expected[1]![1]!.content = "x";
+      expected[3]![3]!.content = "x";
+      it("should create canvas of same size", () => {
+        expect(canvas.width).toEqual(width);
+        expect(canvas.height).toEqual(height);
+      });
+      it("should create canvas of same content", () => {
+        expect(canvas.canvas).toEqual(expected);
+      });
+    });
+
+    describe("canvas with unmatched width and height", () => {
+      const width = 6;
+      const height = 6;
+      const input: string[][] = [
+        [" ", " ", " ", " ", " "],
+        [" ", "x", " ", " ", " "],
+        [" ", " ", " ", " ", " "],
+        [" ", " ", " ", "x", " "],
+        [" ", " ", " ", " ", " "],
+      ];
+
+      it("should throw error", () => {
+        expect(() => Canvas.from(width, height, input)).toThrowError();
+      });
+    });
+  });
+
+  describe("creating Canvas instances", () => {
+    describe("positive width and height", () => {
+      const width = 5;
+      const height = 5;
+
+      const expected: Cell[][] = Canvas.from(width, height, [
+        [" ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " "],
+      ]).canvas;
       it("should initialize string array of correct size", () => {
         const canvas = new Canvas(width, height);
         expect(canvas.canvas).toEqual(expected);
@@ -93,13 +172,13 @@ describe("Canvas test", () => {
         let pointA: Coordinate;
         let pointB: Coordinate;
 
-        const expected: string[][] = [
+        const expected: Cell[][] = Canvas.from(width, height, [
           [" ", " ", " ", " ", " "],
           [" ", "x", "x", "x", " "],
           [" ", " ", " ", " ", " "],
           [" ", " ", " ", " ", " "],
           [" ", " ", " ", " ", " "],
-        ];
+        ]).canvas;
 
         beforeEach(() => {
           pointA = { x: 2, y: 2 };
@@ -124,13 +203,13 @@ describe("Canvas test", () => {
       describe("same point inside boundary", () => {
         const pointA = { x: 1, y: 2 };
 
-        const expected: string[][] = [
+        const expected: Cell[][] = Canvas.from(width, height, [
           [" ", " ", " ", " ", " "],
           ["x", " ", " ", " ", " "],
           [" ", " ", " ", " ", " "],
           [" ", " ", " ", " ", " "],
           [" ", " ", " ", " ", " "],
-        ];
+        ]).canvas;
 
         it("should draw straight line correctly", () => {
           canvas.addLine(pointA, pointA);
@@ -143,13 +222,13 @@ describe("Canvas test", () => {
           let boundaryPt: Coordinate;
           let inboundPt: Coordinate;
 
-          const expected: string[][] = [
+          const expected: Cell[][] = Canvas.from(width, height, [
             ["x", "x", "x", " ", " "],
             [" ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " "],
-          ];
+          ]).canvas;
 
           beforeEach(() => {
             boundaryPt = { x: 1, y: 1 };
@@ -178,13 +257,13 @@ describe("Canvas test", () => {
           let boundaryPt: Coordinate;
           let inboundPt: Coordinate;
 
-          const expected: string[][] = [
+          const expected: Cell[][] = Canvas.from(width, height, [
             [" ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " "],
             [" ", " ", "x", "x", "x"],
-          ];
+          ]).canvas;
 
           beforeEach(() => {
             boundaryPt = { x: width, y: height };
@@ -215,13 +294,13 @@ describe("Canvas test", () => {
           let boundaryPtA: Coordinate;
           let boundaryPtB: Coordinate;
 
-          const expected: string[][] = [
+          const expected: Cell[][] = Canvas.from(width, height, [
             ["x", "x", "x", "x", "x"],
             [" ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " "],
-          ];
+          ]).canvas;
 
           beforeEach(() => {
             boundaryPtA = { x: 1, y: 1 };
@@ -251,13 +330,13 @@ describe("Canvas test", () => {
           let boundaryPtA: Coordinate;
           let boundaryPtB: Coordinate;
 
-          const expected: string[][] = [
+          const expected: Cell[][] = Canvas.from(width, height, [
             [" ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " "],
             ["x", "x", "x", "x", "x"],
-          ];
+          ]).canvas;
 
           beforeEach(() => {
             boundaryPtA = { x: 1, y: height };
@@ -500,13 +579,13 @@ describe("Canvas test", () => {
         let pointA: Coordinate;
         let pointB: Coordinate;
 
-        const expected: string[][] = [
+        const expected: Cell[][] = Canvas.from(width, height, [
           [" ", " ", " ", " ", " "],
           [" ", " ", "x", " ", " "],
           [" ", " ", "x", " ", " "],
           [" ", " ", "x", " ", " "],
           [" ", " ", " ", " ", " "],
-        ];
+        ]).canvas;
 
         beforeEach(() => {
           pointA = { x: 3, y: 2 };
@@ -531,13 +610,13 @@ describe("Canvas test", () => {
       describe("same point inside boundary", () => {
         const pointA = { x: 1, y: 2 };
 
-        const expected: string[][] = [
+        const expected: Cell[][] = Canvas.from(width, height, [
           [" ", " ", " ", " ", " "],
           ["x", " ", " ", " ", " "],
           [" ", " ", " ", " ", " "],
           [" ", " ", " ", " ", " "],
           [" ", " ", " ", " ", " "],
-        ];
+        ]).canvas;
 
         it("should draw straight line correctly", () => {
           canvas.addLine(pointA, pointA);
@@ -550,13 +629,13 @@ describe("Canvas test", () => {
           let boundaryPt: Coordinate;
           let inboundPt: Coordinate;
 
-          const expected: string[][] = [
+          const expected: Cell[][] = Canvas.from(width, height, [
             ["x", " ", " ", " ", " "],
             ["x", " ", " ", " ", " "],
             ["x", " ", " ", " ", " "],
             [" ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " "],
-          ];
+          ]).canvas;
 
           beforeEach(() => {
             boundaryPt = { x: 1, y: 1 };
@@ -586,13 +665,13 @@ describe("Canvas test", () => {
           let boundaryPt: Coordinate;
           let inboundPt: Coordinate;
 
-          const expected: string[][] = [
+          const expected: Cell[][] = Canvas.from(width, height, [
             [" ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " "],
             [" ", " ", " ", " ", "x"],
             [" ", " ", " ", " ", "x"],
             [" ", " ", " ", " ", "x"],
-          ];
+          ]).canvas;
 
           beforeEach(() => {
             boundaryPt = { x: width, y: 3 };
@@ -624,13 +703,13 @@ describe("Canvas test", () => {
           let boundaryPtA: Coordinate;
           let boundaryPtB: Coordinate;
 
-          const expected: string[][] = [
+          const expected: Cell[][] = Canvas.from(width, height, [
             ["x", " ", " ", " ", " "],
             ["x", " ", " ", " ", " "],
             ["x", " ", " ", " ", " "],
             ["x", " ", " ", " ", " "],
             ["x", " ", " ", " ", " "],
-          ];
+          ]).canvas;
 
           beforeEach(() => {
             boundaryPtA = { x: 1, y: 1 };
@@ -660,13 +739,13 @@ describe("Canvas test", () => {
           let boundaryPtA: Coordinate;
           let boundaryPtB: Coordinate;
 
-          const expected: string[][] = [
+          const expected: Cell[][] = Canvas.from(width, height, [
             [" ", " ", " ", " ", "x"],
             [" ", " ", " ", " ", "x"],
             [" ", " ", " ", " ", "x"],
             [" ", " ", " ", " ", "x"],
             [" ", " ", " ", " ", "x"],
-          ];
+          ]).canvas;
 
           beforeEach(() => {
             boundaryPtA = { x: width, y: 1 };
@@ -900,13 +979,13 @@ describe("Canvas test", () => {
         let pointA: Coordinate;
         let pointB: Coordinate;
 
-        // const expected: string[][] = [
+        // const expected: Cell[][] = Canvas.from(width, height, [
         //   [" ", " ", " ", " ", " "],
         //   [" ", "x", " ", " ", " "],
         //   [" ", " ", "x", " ", " "],
         //   [" ", " ", " ", "x", " "],
         //   [" ", " ", " ", " ", " "],
-        // ];
+        // ]).canvas;
         const expected = "Not straight line";
 
         beforeEach(() => {
@@ -941,13 +1020,13 @@ describe("Canvas test", () => {
           let boundaryPt: Coordinate;
           let inboundPt: Coordinate;
 
-          // const expected: string[][] = [
+          // const expected: Cell[][] = Canvas.from(width, height, [
           //   ["x", " ", " ", " ", " "],
           //   [" ", "x", " ", " ", " "],
           //   [" ", " ", "x", " ", " "],
           //   [" ", " ", " ", " ", " "],
           //   [" ", " ", " ", " ", " "],
-          // ];
+          // ]).canvas;
           const expected = "Not straight line";
 
           beforeEach(() => {
@@ -995,13 +1074,13 @@ describe("Canvas test", () => {
           let boundaryPt: Coordinate;
           let inboundPt: Coordinate;
 
-          // const expected: string[][] = [
+          // const expected: Cell[][] = Canvas.from(width, height, [
           //   [" ", " ", " ", " ", " "],
           //   [" ", " ", " ", " ", " "],
           //   [" ", " ", "x", " ", " "],
           //   [" ", " ", " ", "x", " "],
           //   [" ", " ", " ", " ", "x"],
-          // ];
+          // ]).canvas;
           const expected = "Not straight line";
 
           beforeEach(() => {
@@ -1051,13 +1130,13 @@ describe("Canvas test", () => {
           let boundaryPtA: Coordinate;
           let boundaryPtB: Coordinate;
 
-          // const expected: string[][] = [
+          // const expected: Cell[][] = Canvas.from(width, height, [
           //   ["x", " ", " ", " ", " "],
           //   [" ", "x", " ", " ", " "],
           //   [" ", " ", "x", " ", " "],
           //   [" ", " ", " ", "x", " "],
           //   [" ", " ", " ", " ", "x"],
-          // ];
+          // ]).canvas;
           const expected = "Not straight line";
 
           beforeEach(() => {
@@ -1103,13 +1182,13 @@ describe("Canvas test", () => {
           let boundaryPtA: Coordinate;
           let boundaryPtB: Coordinate;
 
-          // const expected: string[][] = [
+          // const expected: Cell[][] = Canvas.from(width, height, [
           //   [" ", " ", " ", " ", "x"],
           //   [" ", " ", " ", "x", " "],
           //   [" ", " ", "x", " ", " "],
           //   [" ", "x", " ", " ", " "],
           //   ["x", " ", " ", " ", " "],
-          // ];
+          // ]).canvas;
           const expected = "Not straight line";
 
           beforeEach(() => {
@@ -1365,13 +1444,13 @@ describe("Canvas test", () => {
       let pointC: Coordinate;
       let pointD: Coordinate;
 
-      const expected: string[][] = [
+      const expected: Cell[][] = Canvas.from(width, height, [
         [" ", " ", " ", " ", " "],
         [" ", "x", "x", "x", " "],
         [" ", "x", " ", "x", " "],
         [" ", "x", "x", "x", " "],
         [" ", " ", " ", " ", " "],
-      ];
+      ]).canvas;
 
       beforeEach(() => {
         canvas = new Canvas(width, height);
@@ -1403,13 +1482,13 @@ describe("Canvas test", () => {
         let pointC: Coordinate;
         let pointD: Coordinate;
 
-        const expected: string[][] = [
+        const expected: Cell[][] = Canvas.from(width, height, [
           [" ", "x", "x", "x", " "],
           [" ", "x", " ", "x", " "],
           [" ", "x", "x", "x", " "],
           [" ", " ", " ", " ", " "],
           [" ", " ", " ", " ", " "],
-        ];
+        ]).canvas;
 
         beforeEach(() => {
           canvas = new Canvas(width, height);
@@ -1440,13 +1519,13 @@ describe("Canvas test", () => {
         let pointC: Coordinate;
         let pointD: Coordinate;
 
-        const expected: string[][] = [
+        const expected: Cell[][] = Canvas.from(width, height, [
           [" ", " ", "x", "x", "x"],
           [" ", " ", "x", " ", "x"],
           [" ", " ", "x", "x", "x"],
           [" ", " ", " ", " ", " "],
           [" ", " ", " ", " ", " "],
-        ];
+        ].canvas;
 
         beforeEach(() => {
           canvas = new Canvas(width, height);
@@ -1477,13 +1556,13 @@ describe("Canvas test", () => {
         let pointC: Coordinate;
         let pointD: Coordinate;
 
-        const expected: string[][] = [
+        const expected: Cell[][] = Canvas.from(width, height, [
           [" ", " ", " ", " ", " "],
           [" ", " ", "x", "x", "x"],
           [" ", " ", "x", " ", "x"],
           [" ", " ", "x", "x", "x"],
           [" ", " ", " ", " ", " "],
-        ];
+        ]).canvas;
 
         beforeEach(() => {
           canvas = new Canvas(width, height);
@@ -1514,13 +1593,13 @@ describe("Canvas test", () => {
         let pointC: Coordinate;
         let pointD: Coordinate;
 
-        const expected: string[][] = [
+        const expected: Cell[][] = Canvas.from(width, height, [
           [" ", " ", " ", " ", " "],
           [" ", " ", " ", " ", " "],
           [" ", " ", "x", "x", "x"],
           [" ", " ", "x", " ", "x"],
           [" ", " ", "x", "x", "x"],
-        ];
+        ]).canvas;
 
         beforeEach(() => {
           canvas = new Canvas(width, height);
@@ -1551,13 +1630,13 @@ describe("Canvas test", () => {
         let pointC: Coordinate;
         let pointD: Coordinate;
 
-        const expected: string[][] = [
+        const expected: Cell[][] = Canvas.from(width, height, [
           [" ", " ", " ", " ", " "],
           [" ", " ", " ", " ", " "],
           [" ", "x", "x", "x", " "],
           [" ", "x", " ", "x", " "],
           [" ", "x", "x", "x", " "],
-        ];
+        ]).canvas;
 
         beforeEach(() => {
           canvas = new Canvas(width, height);
@@ -1588,13 +1667,13 @@ describe("Canvas test", () => {
         let pointC: Coordinate;
         let pointD: Coordinate;
 
-        const expected: string[][] = [
+        const expected: Cell[][] = Canvas.from(width, height, [
           [" ", " ", " ", " ", " "],
           [" ", " ", " ", " ", " "],
           ["x", "x", "x", " ", " "],
           ["x", " ", "x", " ", " "],
           ["x", "x", "x", " ", " "],
-        ];
+        ]).canvas;
 
         beforeEach(() => {
           canvas = new Canvas(width, height);
@@ -1625,13 +1704,13 @@ describe("Canvas test", () => {
         let pointC: Coordinate;
         let pointD: Coordinate;
 
-        const expected: string[][] = [
+        const expected: Cell[][] = Canvas.from(width, height, [
           [" ", " ", " ", " ", " "],
           ["x", "x", "x", " ", " "],
           ["x", " ", "x", " ", " "],
           ["x", "x", "x", " ", " "],
           [" ", " ", " ", " ", " "],
-        ];
+        ]).canvas;
 
         beforeEach(() => {
           canvas = new Canvas(width, height);
@@ -1662,13 +1741,13 @@ describe("Canvas test", () => {
         let pointC: Coordinate;
         let pointD: Coordinate;
 
-        const expected: string[][] = [
+        const expected: Cell[][] = Canvas.from(width, height, [
           ["x", "x", "x", " ", " "],
           ["x", " ", "x", " ", " "],
           ["x", "x", "x", " ", " "],
           [" ", " ", " ", " ", " "],
           [" ", " ", " ", " ", " "],
-        ];
+        ]).canvas;
 
         beforeEach(() => {
           canvas = new Canvas(width, height);
@@ -1738,4 +1817,6 @@ describe("Canvas test", () => {
       });
     });
   });
+
+  describe("fill area", () => {});
 });

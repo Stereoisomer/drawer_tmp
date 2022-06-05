@@ -1,24 +1,26 @@
-import { BFS, GraphNode, GraphQueue } from "../types/graph";
 import { Coordinate } from "../types/coordinate";
-import { CELL_SYMBOL } from "./cell";
+import { Cell, CELL_SYMBOL } from "./cell";
+import { CanvasGraphHelper } from "./canvas.graph";
 
 export class Canvas {
-  canvas: (CELL_SYMBOL | string)[][] = [];
-
-  graphNodes: GraphNode<Coordinate>[][] = [];
+  canvas: Cell[][] = [];
 
   constructor(public width: number = 0, public height: number = 0) {
     if (typeof width !== "number" || typeof height !== "number")
       throw "Invalid params";
     if (width < 0 || height < 0) throw "Invalid size";
 
-    this.canvas = new Array<(CELL_SYMBOL | string)[]>(height);
-    this.graphNodes = new Array<GraphNode<Coordinate>[]>(height);
+    this.canvas = new Array<Cell[]>(height);
 
     for (let i = 0; i < height; i++) {
       // init 2d array
-      this.canvas[i] = new Array<CELL_SYMBOL>(width).fill(CELL_SYMBOL.EMPTY);
-      this.graphNodes[i] = new Array<GraphNode<Coordinate>>(width);
+      this.canvas[i] = new Array<Cell>(width);
+      for (let j = 0; j < width; j++) {
+        this.canvas[i]![j] = {
+          coordinate: { x: j, y: i },
+          content: CELL_SYMBOL.EMPTY,
+        };
+      }
     }
   }
 
@@ -27,7 +29,7 @@ export class Canvas {
     for (let row of this.canvas) {
       let str = "|";
       for (let cell of row) {
-        str = str.concat(cell);
+        str = str.concat(cell.content);
       }
       str = str.concat("|");
       console.log(str);
@@ -43,25 +45,23 @@ export class Canvas {
     const canvas: Canvas = new Canvas(width, height);
     for (let i = 1; i <= height; i++) {
       for (let j = 1; j <= width; j++) {
-        canvas._setCell(canvas.canvas, { x: j, y: i }, content[i]![j]!);
+        canvas._setCell(canvas.canvas, { x: j, y: i }, content[i - 1]![j - 1]!);
       }
     }
     return canvas;
   }
 
-  static getCell(
-    canvas: (CELL_SYMBOL | string)[][],
-    coord: Coordinate
-  ): string | undefined {
-    return canvas[coord.y - 1]?.[coord.x - 1];
+  public getCell(coord: Coordinate): Cell | undefined {
+    return this.canvas[coord.y - 1]?.[coord.x - 1];
   }
 
   private _setCell(
-    canvas: (CELL_SYMBOL | string)[][],
+    canvas: Cell[][],
     coord: Coordinate,
     content: CELL_SYMBOL | string
   ): void {
-    if (this._isCoordValid(coord)) canvas[coord.y - 1]![coord.x - 1] = content;
+    if (this._isCoordValid(coord))
+      canvas[coord.y - 1]![coord.x - 1]!.content = content;
   }
 
   private _applyUpdate(
@@ -69,7 +69,7 @@ export class Canvas {
     content: CELL_SYMBOL | string
   ): void {
     // init updated canvas with deep copy
-    const newCanvas: (CELL_SYMBOL | string)[][] = [];
+    const newCanvas: Cell[][] = [];
     for (let row of this.canvas) {
       newCanvas.push(row.slice());
     }
@@ -86,49 +86,6 @@ export class Canvas {
       coord.y > 0 &&
       coord.y <= this.height
     );
-  }
-
-  private _getGraphNode(coord: Coordinate): GraphNode<Coordinate> | undefined {
-    return this.graphNodes[coord.y - 1]?.[coord.x - 1];
-  }
-
-  private _setGraphNode(
-    coord: Coordinate,
-    content: GraphNode<Coordinate>
-  ): void {
-    this.graphNodes[coord.y - 1]![coord.x - 1] = content;
-  }
-
-  private _resetGraphNodes() {
-    this.graphNodes = [];
-    for (let i = 0; i < this.height; i++) {
-      this.graphNodes[i] = new Array<GraphNode<Coordinate>>(this.width);
-    }
-  }
-
-  private getNeighbourGraphNodes(coord: Coordinate): GraphNode<Coordinate>[] {
-    const validNeighbours: GraphNode<Coordinate>[] = [];
-    const neighbours: Coordinate[] = [
-      { x: coord.x, y: coord.y - 1 },
-      { x: coord.x, y: coord.y + 1 },
-      { x: coord.x - 1, y: coord.y },
-      { x: coord.x + 1, y: coord.y },
-    ];
-
-    // check for valid (in-bound) neighbours
-    for (let neighbour of neighbours) {
-      if (this._isCoordValid(neighbour)) {
-        let neibourNode: GraphNode<Coordinate> | undefined =
-          this._getGraphNode(neighbour);
-        // dynamically generate new graph node
-        if (neibourNode === undefined) {
-          neibourNode = new GraphNode<Coordinate>(neighbour);
-          this._setGraphNode(neighbour, neibourNode);
-        }
-        validNeighbours.push(neibourNode);
-      }
-    }
-    return validNeighbours;
   }
 
   private _addLine(start: Coordinate, end: Coordinate): Coordinate[] {
@@ -179,28 +136,11 @@ export class Canvas {
   fillArea(coord: Coordinate, color: string): void {
     if (!this._isCoordValid(coord)) throw "Invalid coordinates";
 
-    const targetSymbol: string = Canvas.getCell(this.canvas, coord)!;
+    const helper = new CanvasGraphHelper(this);
 
-    // reset graph nodes map for BFS
-    this._resetGraphNodes();
-    this._setGraphNode(coord, new GraphNode<Coordinate>(coord));
+    const cell = this.getCell(coord)!;
 
-    // init BFS Queue
-    const bfsQueue: GraphQueue<Coordinate> = new GraphQueue<Coordinate>();
-    bfsQueue.enqueue(this._getGraphNode(coord)!);
-
-    // BFS
-    const affectedCells = BFS<Coordinate>(
-      bfsQueue,
-      // dynamically generate and return neighbour nodes
-      (node) => {
-        const { item: coord } = node;
-        return this.getNeighbourGraphNodes(coord);
-      },
-      // only include similar cells (with same symbol)
-      (coord) =>
-        Canvas.getCell(this.canvas, { x: coord.x, y: coord.y }) === targetSymbol
-    );
+    const affectedCells = helper.runBFS(cell);
 
     this._applyUpdate(affectedCells, color);
   }
