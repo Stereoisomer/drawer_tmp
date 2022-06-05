@@ -39,6 +39,7 @@ export function BFS<T>(
     for (let cell of getNeighbours(node)) {
       if (cell.status === "unprocessed" && predicate(cell.item)) {
         cell.distance = distance + 1;
+        cell.parent = node;
         queue.enqueue(cell);
       }
     }
