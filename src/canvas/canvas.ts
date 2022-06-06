@@ -43,16 +43,16 @@ export class Canvas {
     content: (CELL_SYMBOL | string)[][]
   ): Canvas {
     const canvas: Canvas = new Canvas(width, height);
-    for (let i = 1; i <= height; i++) {
-      for (let j = 1; j <= width; j++) {
-        canvas._setCell(canvas.canvas, { x: j, y: i }, content[i - 1]![j - 1]!);
+    for (let i = 0; i < height; i++) {
+      for (let j = 0; j < width; j++) {
+        canvas._setCell(canvas.canvas, { x: j, y: i }, content[i]![j]!);
       }
     }
     return canvas;
   }
 
   public getCell(coord: Coordinate): Cell | undefined {
-    return this.canvas[coord.y - 1]?.[coord.x - 1];
+    return this.canvas[coord.y]?.[coord.x];
   }
 
   private _setCell(
@@ -60,8 +60,8 @@ export class Canvas {
     coord: Coordinate,
     content: CELL_SYMBOL | string
   ): void {
-    if (this._isCoordValid(coord))
-      canvas[coord.y - 1]![coord.x - 1]!.content = content;
+    if (this._isCoordValid(coord)) canvas[coord.y]![coord.x]!.content = content;
+    else throw "Invalid coordinates";
   }
 
   private _applyUpdate(
@@ -79,12 +79,17 @@ export class Canvas {
     this.canvas = newCanvas;
   }
 
+  private _transformCoordinate(coord: Coordinate): void {
+    coord.x--;
+    coord.y--;
+  }
+
   private _isCoordValid(coord: Coordinate): boolean {
     return (
-      coord.x > 0 &&
-      coord.x <= this.width &&
-      coord.y > 0 &&
-      coord.y <= this.height
+      coord.x >= 0 &&
+      coord.x < this.width &&
+      coord.y >= 0 &&
+      coord.y < this.height
     );
   }
 
@@ -111,14 +116,15 @@ export class Canvas {
   }
 
   addLine(start: Coordinate, end: Coordinate): void {
+    this._transformCoordinate(start);
+    this._transformCoordinate(end);
     const updateCoords: Coordinate[] = this._addLine(start, end);
     this._applyUpdate(updateCoords, CELL_SYMBOL.LINE);
   }
 
   addRectangle(cornerA: Coordinate, cornerB: Coordinate): void {
-    if (!this._isCoordValid(cornerA) || !this._isCoordValid(cornerB))
-      throw "Invalid coordinates";
-
+    this._transformCoordinate(cornerA);
+    this._transformCoordinate(cornerB);
     const cornerC: Coordinate = { x: cornerA.x, y: cornerB.y };
     const cornerD: Coordinate = { x: cornerB.x, y: cornerA.y };
 
@@ -134,13 +140,14 @@ export class Canvas {
   }
 
   fillArea(coord: Coordinate, color: string): void {
+    this._transformCoordinate(coord);
     if (!this._isCoordValid(coord)) throw "Invalid coordinates";
 
     const helper = new CanvasGraphHelper(this);
 
     const cell = this.getCell(coord)!;
 
-    const affectedCells = helper.runBFS(cell);
+    const affectedCells = helper.fillAreaBFS(cell);
 
     this._applyUpdate(affectedCells, color);
   }

@@ -14,10 +14,11 @@ export class CanvasGraphHelper {
 
     // init graphNodes array
     this.graphNodes = new Array<GraphNode<Cell>[]>(this.height);
+    // console.log(canvas.canvas.map((row) => row.map((cell) => cell.content)));
     for (let i = 0; i < canvas.height; i++) {
       this.graphNodes[i] = new Array<GraphNode<Cell>>(this.width);
       for (let j = 0; j < canvas.width; j++) {
-        const cell: Cell = canvas[i][j];
+        const cell: Cell = canvas.canvas[i]![j]!;
         this.graphNodes[i]![j] = new GraphNode<Cell>(cell);
       }
     }
@@ -25,10 +26,10 @@ export class CanvasGraphHelper {
 
   private _isCoordValid(coord: Coordinate): boolean {
     return (
-      coord.x > 0 &&
-      coord.x <= this.width &&
-      coord.y > 0 &&
-      coord.y <= this.height
+      coord.x >= 0 &&
+      coord.x < this.width &&
+      coord.y >= 0 &&
+      coord.y < this.height
     );
   }
 
@@ -58,7 +59,7 @@ export class CanvasGraphHelper {
     return validNeighbours;
   }
 
-  runBFS(from: Cell): Coordinate[] {
+  fillAreaBFS(from: Cell): Coordinate[] {
     const target = from.content;
 
     const result: Coordinate[] = [];
@@ -75,7 +76,7 @@ export class CanvasGraphHelper {
       for (let neighbour of this.getNeighbours(node)) {
         if (
           neighbour.status === "unprocessed" &&
-          node.item.content === target
+          neighbour.item.content === target
         ) {
           neighbour.distance = distance + 1;
           neighbour.parent = node;

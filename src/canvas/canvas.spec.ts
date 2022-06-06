@@ -10,28 +10,37 @@ describe("Canvas test", () => {
       const width = 5;
       const height = 5;
       const input: string[][] = [
-        [" ", " ", " ", " ", " "],
-        [" ", " ", " ", " ", " "],
-        [" ", " ", " ", " ", " "],
-        [" ", " ", " ", " ", " "],
-        [" ", " ", " ", " ", " "],
+        [" ", " ", "x", " ", "x"],
+        [" ", "x", " ", " ", "x"],
+        [" ", "x", " ", "x", " "],
+        [" ", " ", "x", "x", " "],
+        [" ", " ", " ", " ", "x"],
       ];
 
       const canvas = Canvas.from(width, height, input);
 
-      const expected: Cell[][] = new Array<Cell[]>(height);
-      for (let i = 0; i < height; i++) {
-        expected[i] = new Array<Cell>(width);
-        for (let j = 0; j < width; j++) {
-          expected[i]![j] = new Cell({ x: j, y: i }, " ");
-        }
-      }
+      const expectedMarkedCells: Coordinate[] = [
+        { x: 2, y: 0 },
+        { x: 4, y: 0 },
+        { x: 1, y: 1 },
+        { x: 4, y: 1 },
+        { x: 1, y: 2 },
+        { x: 3, y: 2 },
+        { x: 2, y: 3 },
+        { x: 3, y: 3 },
+        { x: 4, y: 4 },
+      ];
       it("should create canvas of same size", () => {
         expect(canvas.width).toEqual(width);
         expect(canvas.height).toEqual(height);
       });
-      it("should create canvas of empty content", () => {
-        expect(canvas.canvas).toEqual(expected);
+      it("should create canvas of same content", () => {
+        // console.log(
+        //   canvas.canvas.map((row) => row.map((cell) => cell.content))
+        // );
+        for (let coord of expectedMarkedCells) {
+          expect(canvas.canvas[coord.y]![coord.x]!.content).toEqual("x");
+        }
       });
     });
 
@@ -211,8 +220,8 @@ describe("Canvas test", () => {
           [" ", " ", " ", " ", " "],
         ]).canvas;
 
-        it("should draw straight line correctly", () => {
-          canvas.addLine(pointA, pointA);
+        it("should draw dot correctly", () => {
+          canvas.addLine(pointA, { x: pointA.x, y: pointA.y });
           expect(canvas.canvas).toEqual(expected);
         });
       });
@@ -618,8 +627,8 @@ describe("Canvas test", () => {
           [" ", " ", " ", " ", " "],
         ]).canvas;
 
-        it("should draw straight line correctly", () => {
-          canvas.addLine(pointA, pointA);
+        it("should draw dot correctly", () => {
+          canvas.addLine(pointA, { x: pointA.x, y: pointA.y });
           expect(canvas.canvas).toEqual(expected);
         });
       });
@@ -1818,5 +1827,148 @@ describe("Canvas test", () => {
     });
   });
 
-  describe("fill area", () => {});
+  describe("fill area", () => {
+    describe("fill one point", () => {
+      let width: number = 5;
+      let height: number = 5;
+      const canvas: Canvas = Canvas.from(width, height, [
+        [" ", " ", " ", " ", " "],
+        [" ", "x", " ", " ", " "],
+        [" ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " "],
+      ]);
+
+      const coordinate: Coordinate = { x: 2, y: 2 };
+      const color: string = "B";
+      const expected: Cell[][] = Canvas.from(width, height, [
+        [" ", " ", " ", " ", " "],
+        [" ", "B", " ", " ", " "],
+        [" ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " "],
+      ]).canvas;
+
+      canvas.fillArea(coordinate, color);
+
+      it("should only fill one cell", () => {
+        console.log(
+          canvas.canvas.map((row) => row.map((cell) => cell.content))
+        );
+
+        expect(canvas.canvas).toEqual(expected);
+      });
+    });
+
+    describe("fill line", () => {
+      let width: number = 5;
+      let height: number = 5;
+      const canvas: Canvas = Canvas.from(width, height, [
+        [" ", " ", " ", " ", " "],
+        [" ", "x", " ", " ", " "],
+        [" ", "x", " ", " ", " "],
+        [" ", "x", " ", " ", " "],
+        [" ", "x", " ", " ", " "],
+      ]);
+
+      const coordinate: Coordinate = { x: 2, y: 2 };
+      const color: string = "B";
+      const expected: Cell[][] = Canvas.from(width, height, [
+        [" ", " ", " ", " ", " "],
+        [" ", "B", " ", " ", " "],
+        [" ", "B", " ", " ", " "],
+        [" ", "B", " ", " ", " "],
+        [" ", "B", " ", " ", " "],
+      ]).canvas;
+
+      canvas.fillArea(coordinate, color);
+
+      it("should change symbol of every cell of line", () => {
+        expect(canvas.canvas).toEqual(expected);
+      });
+    });
+
+    describe("fill rectangular space", () => {
+      let width: number = 5;
+      let height: number = 5;
+      const canvas: Canvas = Canvas.from(width, height, [
+        [" ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " "],
+      ]);
+
+      const coordinate: Coordinate = { x: 2, y: 2 };
+      const color: string = "B";
+      const expected: Cell[][] = Canvas.from(width, height, [
+        ["B", "B", "B", "B", "B"],
+        ["B", "B", "B", "B", "B"],
+        ["B", "B", "B", "B", "B"],
+        ["B", "B", "B", "B", "B"],
+        ["B", "B", "B", "B", "B"],
+      ]).canvas;
+
+      canvas.fillArea(coordinate, color);
+
+      it("should fill the whole space", () => {
+        expect(canvas.canvas).toEqual(expected);
+      });
+    });
+
+    describe("fill irregular space", () => {
+      let width: number = 5;
+      let height: number = 5;
+      const canvas: Canvas = Canvas.from(width, height, [
+        [" ", " ", "x", " ", "x"],
+        [" ", "x", " ", " ", "x"],
+        [" ", "x", " ", "x", " "],
+        [" ", " ", "x", " ", "x"],
+        [" ", " ", " ", "x", " "],
+      ]);
+
+      const coordinate: Coordinate = { x: 3, y: 3 };
+      const color: string = "B";
+      const expected: Cell[][] = Canvas.from(width, height, [
+        [" ", " ", "x", "B", "x"],
+        [" ", "x", "B", "B", "x"],
+        [" ", "x", "B", "x", " "],
+        [" ", " ", "x", " ", "x"],
+        [" ", " ", " ", "x", " "],
+      ]).canvas;
+
+      canvas.fillArea(coordinate, color);
+
+      it("should fill the whole space", () => {
+        expect(canvas.canvas).toEqual(expected);
+      });
+    });
+
+    describe("invalid coordinates", () => {
+      let width: number = 5;
+      let height: number = 5;
+      const canvas: Canvas = Canvas.from(width, height, [
+        [" ", " ", "x", " ", "x"],
+        [" ", "x", " ", " ", "x"],
+        [" ", "x", " ", "x", " "],
+        [" ", " ", "x", " ", "x"],
+        [" ", " ", " ", "x", " "],
+      ]);
+
+      const coordinate: Coordinate = { x: 0, y: 3 };
+      const color: string = "B";
+      const expected: string = "Invalid coordinates";
+
+      it("should throw error", () => {
+        expect(() => canvas.fillArea(coordinate, color)).toThrow(expected);
+        expect(() => canvas.fillArea({ x: width + 1, y: 3 }, color)).toThrow(
+          expected
+        );
+      });
+    });
+
+    describe("invalid color", () => {
+      // this is not in the assumption
+    });
+  });
 });
