@@ -11,5 +11,5 @@ Run tests: `yarn test`
 
 # Assumptions
 
-1. Invalid input will not produce log on console
-1. Failed/Invalid actions will not update the canvas
+1. All coordinates are numbers only (can be negative, zero or positive)
+1. The 'color' argument in 'fill area' command is a printable ASCII character ([https://en.wikipedia.org/wiki/ASCII#Printable_characters](https://en.wikipedia.org/wiki/ASCII#Printable_characters))
