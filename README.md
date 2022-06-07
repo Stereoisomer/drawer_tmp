@@ -1,6 +1,7 @@
 # Specs
 
 Language: Typescript
+Node Version: 16.14.1
 Package Manager: Yarn (Install yarn by `npm i -g yarn`)
 
 # Commands
