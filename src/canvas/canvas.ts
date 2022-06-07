@@ -25,16 +25,22 @@ export class Canvas {
   }
 
   draw(): void {
-    console.log("-".repeat(this.width + 2));
-    for (let row of this.canvas) {
-      let str = "|";
-      for (let cell of row) {
-        str = str.concat(cell.content);
-      }
-      str = str.concat("|");
-      console.log(str);
-    }
-    console.log("-".repeat(this.width + 2));
+    console.log(this.toString());
+  }
+
+  toString(): string {
+    return "-"
+      .repeat(this.width + 2)
+      .concat("\n")
+      .concat(
+        this.canvas
+          .map((row) =>
+            "|".concat(row.map((cell) => cell.content).join("")).concat("|\n")
+          )
+          .join("")
+      )
+      .concat("-".repeat(this.width + 2))
+      .concat("\n");
   }
 
   static from(

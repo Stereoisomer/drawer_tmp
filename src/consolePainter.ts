@@ -8,7 +8,6 @@ export class ConsolePainter {
 
   constructor(private io: readline.Interface) {
     this.init();
-    this.start();
   }
 
   init() {
@@ -27,81 +26,85 @@ export class ConsolePainter {
       Q               Should quit the program.\n`);
   }
 
+  private async _askAction(): Promise<string> {
+    return await new Promise((resolve) => {
+      this.io.question("enter command: ", (ans) => resolve(ans));
+    });
+  }
+
+  public process(command: string): void {
+    const args = command.split(" ");
+    switch (args[0]) {
+      case "C":
+        // construct or re-create new canvas
+        try {
+          this.canvas = new Canvas(
+            parseInt(args[1] as string),
+            parseInt(args[2] as string)
+          );
+        } catch (e) {
+          // no error handling
+          // console.log(e);
+        }
+        break;
+      case "L":
+        // draw straight line
+        try {
+          const coordFrom: Coordinate = {
+            x: parseInt(args[1] as string),
+            y: parseInt(args[2] as string),
+          };
+          const coordTo: Coordinate = {
+            x: parseInt(args[3] as string),
+            y: parseInt(args[4] as string),
+          };
+          this.canvas?.addLine(coordFrom, coordTo);
+        } catch (e) {
+          // no error handling
+          // console.log(e);
+        }
+        break;
+      case "R":
+        // draw rectangle
+        try {
+          const coordA: Coordinate = {
+            x: parseInt(args[1] as string),
+            y: parseInt(args[2] as string),
+          };
+          const coordB: Coordinate = {
+            x: parseInt(args[3] as string),
+            y: parseInt(args[4] as string),
+          };
+          this.canvas?.addRectangle(coordA, coordB);
+        } catch (e) {
+          // no error handling
+          // console.log(e);
+        }
+        break;
+      case "B":
+        // fill area
+        try {
+          const coord: Coordinate = {
+            x: parseInt(args[1] as string),
+            y: parseInt(args[2] as string),
+          };
+          const color: string = args[3] as string;
+          this.canvas?.fillArea(coord, color);
+        } catch (e) {
+          // no error handling
+          // console.log(e);
+        }
+        break;
+      default:
+    }
+  }
+
   async start() {
     while (true) {
+      const ans: string = await this._askAction();
+      if (ans === "Q") return;
+      this.process(ans);
       this.canvas?.draw();
-      const ans: string = await new Promise((resolve) => {
-        this.io.question("enter command: ", (ans) => resolve(ans));
-      });
-      const args = ans.split(" ");
-      if (args.length > 0) {
-        switch (args[0]) {
-          case "C":
-            // construct or re-create new canvas
-            try {
-              this.canvas = new Canvas(
-                parseInt(args[1] as string),
-                parseInt(args[2] as string)
-              );
-            } catch (e) {
-              // no error handling
-              // console.log(e);
-            }
-            break;
-          case "L":
-            // draw straight line
-            try {
-              const coordFrom: Coordinate = {
-                x: parseInt(args[1] as string),
-                y: parseInt(args[2] as string),
-              };
-              const coordTo: Coordinate = {
-                x: parseInt(args[3] as string),
-                y: parseInt(args[4] as string),
-              };
-              this.canvas?.addLine(coordFrom, coordTo);
-            } catch (e) {
-              // no error handling
-              // console.log(e);
-            }
-            break;
-          case "R":
-            // draw rectangle
-            try {
-              const coordA: Coordinate = {
-                x: parseInt(args[1] as string),
-                y: parseInt(args[2] as string),
-              };
-              const coordB: Coordinate = {
-                x: parseInt(args[3] as string),
-                y: parseInt(args[4] as string),
-              };
-              this.canvas?.addRectangle(coordA, coordB);
-            } catch (e) {
-              // no error handling
-              // console.log(e);
-            }
-            break;
-          case "B":
-            // fill area
-            try {
-              const coord: Coordinate = {
-                x: parseInt(args[1] as string),
-                y: parseInt(args[2] as string),
-              };
-              const color: string = args[3] as string;
-              this.canvas?.fillArea(coord, color);
-            } catch (e) {
-              // no error handling
-              // console.log(e);
-            }
-            break;
-          case "Q":
-            // quit program
-            exit(0);
-          default:
-        }
-      }
     }
   }
 }
