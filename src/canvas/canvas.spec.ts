@@ -1852,9 +1852,9 @@ describe("Canvas test", () => {
       canvas.fillArea(coordinate, color);
 
       it("should only fill one cell", () => {
-        console.log(
-          canvas.canvas.map((row) => row.map((cell) => cell.content))
-        );
+        // console.log(
+        //   canvas.canvas.map((row) => row.map((cell) => cell.content))
+        // );
 
         expect(canvas.canvas).toEqual(expected);
       });
